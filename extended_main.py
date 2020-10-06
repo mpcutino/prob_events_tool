@@ -24,6 +24,8 @@ class Modified_MainWindow(Ui_MainWindow):
         self.modes = ["cluster", "prob_pixel", "binary"]
         self.group_by = ["pixels", "events"]
         self.prob_filter = 0
+        self.minh = 0
+        self.minw = 0
 
     def doUiSetup(self, qtMainWindow):
         # this is from base class
@@ -45,12 +47,33 @@ class Modified_MainWindow(Ui_MainWindow):
         self.mode_comboBox.setEnabled(False)
         self.mode_comboBox.currentIndexChanged.connect(self.dummy_img_update)
         # set eps and min_point defaults
-        self.eps_spinBox.setValue(10)
+        self.eps_spinBox.setValue(15)
         self.eps_spinBox.setMinimum(1)
         self.minPoints_spinBox.setValue(50)
         self.minPoints_spinBox.setMinimum(2)
         self.eps_spinBox.valueChanged.connect(self.dummy_img_update)
         self.minPoints_spinBox.valueChanged.connect(self.dummy_img_update)
+        # add items to dbscan group by
+        self.dbscanGroupBy_comboBox.addItems(self.group_by)
+        self.dbscanGroupBy_comboBox.currentIndexChanged.connect(self.dummy_img_update)
+        self.dbscanGroupBy_comboBox.setEnabled(False)
+        # add connections to min width and height
+        self.minH_lineEdit.returnPressed.connect(self.minH_change)
+        self.minW_lineEdit.returnPressed.connect(self.minW_change)
+        self.minH_lineEdit.setFocusPolicy(QtCore.Qt.ClickFocus)
+        self.minW_lineEdit.setFocusPolicy(QtCore.Qt.ClickFocus)
+
+    def minH_change(self):
+        h_value = self.some_lineEdit_change(self.minH_lineEdit)
+        if h_value != self.minh:
+            self.minh = h_value
+            self.dummy_img_update()
+
+    def minW_change(self):
+        w_value = self.some_lineEdit_change(self.minW_lineEdit)
+        if w_value != self.minw:
+            self.minw = w_value
+            self.dummy_img_update()
 
     def dummy_img_update(self):
         self.count -= 1
@@ -76,6 +99,7 @@ class Modified_MainWindow(Ui_MainWindow):
                 self.eps_spinBox.setEnabled(True)
                 self.minPoints_spinBox.setEnabled(True)
                 self.mode_comboBox.setEnabled(True)
+                self.dbscanGroupBy_comboBox.setEnabled(True)
             else:
                 show_message("Not a valid bag. It must contains the topic {0}".format(PROB_EVENT_TOPIC))
 
@@ -85,26 +109,26 @@ class Modified_MainWindow(Ui_MainWindow):
         self.update_image(forward=True)
 
     def prob_filter_change(self):
-        line_edit_text = self.prob_lineEdit.text()
-        if not len(str(line_edit_text)):
-            if self.prob_filter > 0:
-                self.prob_filter = 0
-                # update the image
-                self.count -= 1
-                self.update_image(forward=True)
-        else:
-            try:
-                p_filter = int(str(line_edit_text))
-                self.prob_filter = p_filter
-                # update the image
-                self.count -= 1
-                self.update_image(forward=True)
-            except Exception as e:
-                print e
-                show_message("Probability filter must be a number. "
-                             "It shows only events with higher probability than the filter")
-                self.prob_lineEdit.setText("")
-        self.prob_lineEdit.clearFocus()
+        p_value = self.some_lineEdit_change(self.prob_lineEdit)
+        if p_value != self.prob_filter:
+            self.prob_filter = p_value
+            # update the image
+            self.count -= 1
+            self.update_image(forward=True)
+
+    @staticmethod
+    def some_lineEdit_change(lineEdit):
+        line_edit_text = lineEdit.text()
+        lineEdit.clearFocus()
+        try:
+            p_filter = int(str(line_edit_text))
+            return p_filter
+        except Exception as e:
+            print e
+            if len(str(line_edit_text)):
+                show_message("Not a number. Using 0 as default.")
+                lineEdit.setText("")
+        return 0
 
     def next_image(self):
         self.update_image(forward=True)
@@ -144,8 +168,9 @@ class Modified_MainWindow(Ui_MainWindow):
         if self.mode_comboBox.currentText() == "cluster":
             eps = self.eps_spinBox.value()
             min_samples = self.minPoints_spinBox.value()
-            new_image = get_cluster_image(events, eps=eps, min_samples=min_samples)
-            new_image = draw_bBox_from_cluster_img(new_image, self.prob_filter / 100.0)
+            group_by_pixels = str(self.dbscanGroupBy_comboBox.currentText()) == "pixels"
+            new_image = get_cluster_image(events, eps=eps, min_samples=min_samples, use_unique_events=group_by_pixels)
+            new_image = draw_bBox_from_cluster_img(new_image, self.prob_filter / 100.0, min_dims=(self.minh, self.minw))
         else:
             new_image = np.zeros((IMG_H, IMG_W))
             binary_mode = self.mode_comboBox.currentText() == "binary"

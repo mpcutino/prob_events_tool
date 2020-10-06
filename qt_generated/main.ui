@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>761</width>
-    <height>543</height>
+    <width>892</width>
+    <height>578</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -35,7 +35,7 @@
    <property name="enabled">
     <bool>true</bool>
    </property>
-   <layout class="QVBoxLayout" name="verticalLayout_5">
+   <layout class="QVBoxLayout" name="verticalLayout">
     <item>
      <widget class="QLabel" name="img_lbl">
       <property name="sizePolicy">
@@ -59,99 +59,76 @@
      </widget>
     </item>
     <item>
-     <layout class="QVBoxLayout" name="form_verticalLayout">
+     <layout class="QHBoxLayout" name="horizontalLayout_3">
+      <property name="sizeConstraint">
+       <enum>QLayout::SetMinimumSize</enum>
+      </property>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_3">
-        <item>
-         <layout class="QVBoxLayout" name="verticalLayout_4">
-          <item>
-           <widget class="QLabel" name="label_5">
-            <property name="text">
-             <string>Mode</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QComboBox" name="mode_comboBox"/>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <spacer name="horizontalSpacer_2">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
+       <layout class="QFormLayout" name="formLayout">
+        <property name="fieldGrowthPolicy">
+         <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+        </property>
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_7">
+          <property name="text">
+           <string>Min width</string>
           </property>
-          <property name="sizeHint" stdset="0">
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLineEdit" name="minW_lineEdit">
+          <property name="maximumSize">
            <size>
-            <width>40</width>
-            <height>20</height>
+            <width>90</width>
+            <height>16777215</height>
            </size>
           </property>
-         </spacer>
+         </widget>
         </item>
-        <item>
-         <layout class="QVBoxLayout" name="verticalLayout">
-          <item>
-           <widget class="QLabel" name="label_3">
-            <property name="text">
-             <string>DBSCAN epsilon</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QSpinBox" name="eps_spinBox">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-         </layout>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_8">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Min Height</string>
+          </property>
+         </widget>
         </item>
-        <item>
-         <layout class="QVBoxLayout" name="verticalLayout_2">
-          <item>
-           <widget class="QLabel" name="label_4">
-            <property name="text">
-             <string>DBSCAN min points</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QSpinBox" name="minPoints_spinBox">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-         </layout>
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="minH_lineEdit">
+          <property name="maximumSize">
+           <size>
+            <width>90</width>
+            <height>16777215</height>
+           </size>
+          </property>
+         </widget>
         </item>
-        <item>
-         <layout class="QVBoxLayout" name="verticalLayout_3">
-          <item>
-           <widget class="QLabel" name="label_6">
-            <property name="text">
-             <string>DBSCAN group by</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QComboBox" name="dbscanGroupBy_comboBox"/>
-          </item>
-         </layout>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout">
-        <item>
+        <item row="2" column="0">
          <widget class="QLabel" name="label">
           <property name="text">
            <string>Filter probability</string>
           </property>
          </widget>
         </item>
-        <item>
+        <item row="2" column="1">
          <widget class="QLineEdit" name="prob_lineEdit">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>90</width>
+            <height>16777215</height>
+           </size>
+          </property>
           <property name="focusPolicy">
            <enum>Qt::ClickFocus</enum>
           </property>
@@ -160,41 +137,160 @@
           </property>
          </widget>
         </item>
-        <item>
-         <spacer name="horizontalSpacer">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item>
+       </layout>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <layout class="QFormLayout" name="formLayout_4">
+        <property name="fieldGrowthPolicy">
+         <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+        </property>
+        <item row="0" column="0">
          <widget class="QLabel" name="label_2">
           <property name="text">
            <string>Select Color Map</string>
           </property>
          </widget>
         </item>
-        <item>
-         <widget class="QComboBox" name="cmComboBox"/>
+        <item row="0" column="1">
+         <widget class="QComboBox" name="cmComboBox">
+          <property name="maximumSize">
+           <size>
+            <width>90</width>
+            <height>16777215</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_5">
+          <property name="text">
+           <string>Mode</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QComboBox" name="mode_comboBox">
+          <property name="maximumSize">
+           <size>
+            <width>90</width>
+            <height>16777215</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <layout class="QFormLayout" name="formLayout_2">
+        <property name="fieldGrowthPolicy">
+         <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+        </property>
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>DBSCAN epsilon</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QSpinBox" name="eps_spinBox">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>90</width>
+            <height>16777215</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>DBSCAN min points</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QSpinBox" name="minPoints_spinBox">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>90</width>
+            <height>16777215</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_6">
+          <property name="text">
+           <string>DBSCAN group by</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QComboBox" name="dbscanGroupBy_comboBox">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>90</width>
+            <height>16777215</height>
+           </size>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>
      </layout>
     </item>
    </layout>
+   <zorder>formLayoutWidget</zorder>
+   <zorder>formLayoutWidget_2</zorder>
+   <zorder></zorder>
+   <zorder></zorder>
+   <zorder>img_lbl</zorder>
+   <zorder>img_lbl</zorder>
+   <zorder>img_lbl</zorder>
+   <zorder></zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>761</width>
+     <width>892</width>
      <height>25</height>
     </rect>
    </property>
