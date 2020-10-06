@@ -9,6 +9,7 @@ from matplotlib import cm
 from qt_generated.main import Ui_MainWindow, _fromUtf8
 from utils.qt_utils import show_message
 from utils.constants import PROB_EVENT_TOPIC, IMG_H, IMG_W, EVENTS_PER_IMG, EV2Maintain_PER_IMG
+from utils.img_utils import draw_bBox_from_cluster_img
 from modes.cluster import get_cluster_image
 
 
@@ -20,6 +21,8 @@ class Modified_MainWindow(Ui_MainWindow):
 
         self.__init_items__()
         self.color_maps = ["hot", "viridis", "Greens", "copper"]
+        self.modes = ["cluster", "prob_pixel", "binary"]
+        self.group_by = ["pixels", "events"]
         self.prob_filter = 0
 
     def doUiSetup(self, qtMainWindow):
@@ -32,11 +35,26 @@ class Modified_MainWindow(Ui_MainWindow):
         self.actionLoad.triggered.connect(self.load_file)
         self.actionNext_Image.triggered.connect(self.next_image)
         self.actionPrevious_Image.triggered.connect(self.prev_image)
-        # add items to comboBox
+        # add items to color map comboBox
         self.cmComboBox.addItems(self.color_maps)
         self.cmComboBox.currentIndexChanged.connect(self.cbox_change)
         # add connection to prob filter change
         self.prob_lineEdit.returnPressed.connect(self.prob_filter_change)
+        # add items to mode comboBox
+        self.mode_comboBox.addItems(self.modes)
+        self.mode_comboBox.setEnabled(False)
+        self.mode_comboBox.currentIndexChanged.connect(self.dummy_img_update)
+        # set eps and min_point defaults
+        self.eps_spinBox.setValue(10)
+        self.eps_spinBox.setMinimum(1)
+        self.minPoints_spinBox.setValue(50)
+        self.minPoints_spinBox.setMinimum(2)
+        self.eps_spinBox.valueChanged.connect(self.dummy_img_update)
+        self.minPoints_spinBox.valueChanged.connect(self.dummy_img_update)
+
+    def dummy_img_update(self):
+        self.count -= 1
+        self.update_image(forward=True)
 
     def load_file(self):
         # The QWidget widget is the base class of all user interface objects in PyQt4.
@@ -55,6 +73,9 @@ class Modified_MainWindow(Ui_MainWindow):
                 self.__init_items__()
                 self.bag_messages = bag_messages
                 self.update_image(forward=True)
+                self.eps_spinBox.setEnabled(True)
+                self.minPoints_spinBox.setEnabled(True)
+                self.mode_comboBox.setEnabled(True)
             else:
                 show_message("Not a valid bag. It must contains the topic {0}".format(PROB_EVENT_TOPIC))
 
@@ -100,29 +121,45 @@ class Modified_MainWindow(Ui_MainWindow):
             if self.has_finish_bag:
                 self.count = 0
             else:
-                # compute the new image and store it in images array
-                new_image = self.get_new_img()
+                # compute the new latest events and store it in images array
+                new_ev = self.get_new_latest_events()
                 self.has_finish_bag = self.bag_msg_count == len(self.bag_messages)
-                self.images.append(new_image)
+                self.images.append(new_ev)
+        show_img = self.get_img_base_on_mode(self.images[self.count])
         color_map = self.cmComboBox.currentText()
-        show_img = np.array(self.images[self.count])
-        show_img[show_img < self.prob_filter/100.0] = 0
         show_img = cm.get_cmap(str(color_map), 10)(show_img)*255
         cv2.imwrite("tmp.png", show_img)
         self.img_lbl.setPixmap(QtGui.QPixmap("tmp.png"))
         remove("tmp.png")
 
-    def get_new_img(self):
-        # TODO
-        #  In the loop update only the latest_events list. Then use this list to construct the image.
-        #  Also, save this list instead of the numpy image.
-        #  The idea is to use different modes in the showing method, and we need the events for that.
+    def get_img_base_on_mode(self, events):
+        """
+        The idea is to use different modes in the showing method, and we need the events for that.
         #   mode 1) showing the probability colored image using only the value of the event
         #   mode 2) showing the binary image without talking into account the probability
         #   mode 3) cluster events and build the detector over the clusters
-        #  Mode 3 needs to be done, and everything needs to be modified to admit different modes
-        new_image = self.init_img_from_latest_events()
-        self.latest_events = self.latest_events[len(self.latest_events) - EV2Maintain_PER_IMG:]
+        :param events:
+        :return:
+        """
+        if self.mode_comboBox.currentText() == "cluster":
+            eps = self.eps_spinBox.value()
+            min_samples = self.minPoints_spinBox.value()
+            new_image = get_cluster_image(events, eps=eps, min_samples=min_samples)
+            new_image = draw_bBox_from_cluster_img(new_image, self.prob_filter / 100.0)
+        else:
+            new_image = np.zeros((IMG_H, IMG_W))
+            binary_mode = self.mode_comboBox.currentText() == "binary"
+            for ev in events:
+                value = self.get_binary_prob_value(ev) if binary_mode else self.get_colored_prob_value(ev)
+                new_image[ev.y, ev.x] = value
+            # zeroing values below the prob filter
+            new_image[new_image < self.prob_filter / 100.0] = 0
+        return new_image
+
+    def get_new_latest_events(self):
+        latest_events = list(self.images[-1]) if len(self.images) else []
+        if len(latest_events):
+            latest_events = latest_events[len(latest_events) - EV2Maintain_PER_IMG:]
         ev_count = 0
         for msg in self.bag_messages[self.bag_msg_count:]:
             if ev_count > EVENTS_PER_IMG:
@@ -130,39 +167,24 @@ class Modified_MainWindow(Ui_MainWindow):
             self.bag_msg_count += 1
             for e in msg.message.events:
                 ev_count += 1
-                # new_image[e.y, e.x] = self.get_binary_prob_value(e)
-                new_image[e.y, e.x] = self.get_colored_prob_value(e)
-        return new_image
+                latest_events.append(e)
+        return latest_events
 
-    def get_binary_prob_value(self, e):
+    @staticmethod
+    def get_binary_prob_value(e):
         # persons are index 0 in prob array
         if e.probs[0] == max(e.probs):
-            self.latest_events.append(e)
             return 1
         return 0
 
-    def get_colored_prob_value(self, e):
+    @staticmethod
+    def get_colored_prob_value(e):
         # persons are index 0 in prob array
-        if e.probs[0] == max(e.probs):
-            self.latest_events.append(e)
         return e.probs[0]/100.0
-
-    def init_img_from_latest_events(self):
-        if len(self.images):
-            # we need a copy to prevent the modification of the last image
-            new_image = np.array(self.images[-1])
-            for i, e in enumerate(self.latest_events):
-                if i > len(self.latest_events) - EV2Maintain_PER_IMG: break
-                new_image[e.y, e.x] = 0
-        else:
-            new_image = np.zeros((IMG_H, IMG_W))
-        return new_image
-        # return np.zeros((IMG_H, IMG_W))
 
     def __init_items__(self):
         self.bag_messages = []
         self.images = []
-        self.latest_events = []
         self.count = -1
         self.bag_msg_count = 0
         self.has_finish_bag = False
