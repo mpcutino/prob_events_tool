@@ -1,0 +1,10 @@
+<RCC>
+  <qresource prefix="images">
+    <file>images/undo.png</file>
+    <file>images/load.png</file>
+    <file>images/eraser.png</file>
+    <file>images/next.jpg</file>
+    <file>images/previous.jpg</file>
+    <file>images/init.png</file>
+  </qresource>
+</RCC>
