@@ -9,8 +9,8 @@ from matplotlib import cm
 from qt_generated.main import Ui_MainWindow, _fromUtf8
 from utils.qt_utils import show_message
 from utils.constants import PROB_EVENT_TOPIC, IMG_H, IMG_W, EVENTS_PER_IMG, EV2Maintain_PER_IMG
-from utils.img_utils import draw_bBox_from_cluster_img
-from modes.cluster import get_cluster_image
+from utils.img_utils import draw_bBox_from_cluster
+from modes.cluster import get_clusters
 
 
 # noinspection PyAttributeOutsideInit
@@ -45,7 +45,7 @@ class Modified_MainWindow(Ui_MainWindow):
         # add items to mode comboBox
         self.mode_comboBox.addItems(self.modes)
         self.mode_comboBox.setEnabled(False)
-        self.mode_comboBox.currentIndexChanged.connect(self.dummy_img_update)
+        self.mode_comboBox.currentIndexChanged.connect(self.mode_update)
         # set eps and min_point defaults
         self.eps_spinBox.setValue(15)
         self.eps_spinBox.setMinimum(1)
@@ -62,6 +62,21 @@ class Modified_MainWindow(Ui_MainWindow):
         self.minW_lineEdit.returnPressed.connect(self.minW_change)
         self.minH_lineEdit.setFocusPolicy(QtCore.Qt.ClickFocus)
         self.minW_lineEdit.setFocusPolicy(QtCore.Qt.ClickFocus)
+        # add connection to clusterProb radio button
+        self.clusterProb_RadioBtn.clicked.connect(self.dummy_img_update)
+
+    def mode_update(self):
+        if str(self.mode_comboBox.currentText()) == "cluster":
+            self.dbscanGroupBy_comboBox.setEnabled(True)
+            self.eps_spinBox.setEnabled(True)
+            self.minPoints_spinBox.setEnabled(True)
+            self.clusterProb_RadioBtn.setEnabled(True)
+        else:
+            self.dbscanGroupBy_comboBox.setEnabled(False)
+            self.eps_spinBox.setEnabled(False)
+            self.minPoints_spinBox.setEnabled(False)
+            self.clusterProb_RadioBtn.setEnabled(False)
+        self.dummy_img_update()
 
     def minH_change(self):
         h_value = self.some_lineEdit_change(self.minH_lineEdit)
@@ -93,6 +108,7 @@ class Modified_MainWindow(Ui_MainWindow):
             bag = rosbag.Bag(str(filename))
             bag_messages = list(bag.read_messages(PROB_EVENT_TOPIC))
             if len(bag_messages):
+                print(len(bag_messages))
                 self.__init_items__()
                 self.bag_messages = bag_messages
                 self.update_image(forward=True)
@@ -100,6 +116,7 @@ class Modified_MainWindow(Ui_MainWindow):
                 self.minPoints_spinBox.setEnabled(True)
                 self.mode_comboBox.setEnabled(True)
                 self.dbscanGroupBy_comboBox.setEnabled(True)
+                self.clusterProb_RadioBtn.setEnabled(True)
             else:
                 show_message("Not a valid bag. It must contains the topic {0}".format(PROB_EVENT_TOPIC))
 
@@ -137,24 +154,25 @@ class Modified_MainWindow(Ui_MainWindow):
         self.update_image(forward=False)
 
     def update_image(self, forward=True):
-        self.count += 1 if forward else -1
+        if len(self.bag_messages):
+            self.count += 1 if forward else -1
 
-        if self.count < 0 and not forward:
-            self.count = len(self.images) - 1 if self.has_finish_bag else 0
-        if self.count >= len(self.images) and forward:
-            if self.has_finish_bag:
-                self.count = 0
-            else:
-                # compute the new latest events and store it in images array
-                new_ev = self.get_new_latest_events()
-                self.has_finish_bag = self.bag_msg_count == len(self.bag_messages)
-                self.images.append(new_ev)
-        show_img = self.get_img_base_on_mode(self.images[self.count])
-        color_map = self.cmComboBox.currentText()
-        show_img = cm.get_cmap(str(color_map), 10)(show_img)*255
-        cv2.imwrite("tmp.png", show_img)
-        self.img_lbl.setPixmap(QtGui.QPixmap("tmp.png"))
-        remove("tmp.png")
+            if self.count < 0 and not forward:
+                self.count = len(self.images) - 1 if self.has_finish_bag else 0
+            if self.count >= len(self.images) and forward:
+                if self.has_finish_bag:
+                    self.count = 0
+                else:
+                    # compute the new latest events and store it in images array
+                    new_ev = self.get_new_latest_events()
+                    self.has_finish_bag = self.bag_msg_count == len(self.bag_messages)
+                    self.images.append(new_ev)
+            show_img = self.get_img_base_on_mode(self.images[self.count])
+            color_map = self.cmComboBox.currentText()
+            show_img = cm.get_cmap(str(color_map), 10)(show_img)*255
+            cv2.imwrite("tmp.png", show_img)
+            self.img_lbl.setPixmap(QtGui.QPixmap("tmp.png"))
+            remove("tmp.png")
 
     def get_img_base_on_mode(self, events):
         """
@@ -169,8 +187,13 @@ class Modified_MainWindow(Ui_MainWindow):
             eps = self.eps_spinBox.value()
             min_samples = self.minPoints_spinBox.value()
             group_by_pixels = str(self.dbscanGroupBy_comboBox.currentText()) == "pixels"
-            new_image = get_cluster_image(events, eps=eps, min_samples=min_samples, use_unique_events=group_by_pixels)
-            new_image = draw_bBox_from_cluster_img(new_image, self.prob_filter / 100.0, min_dims=(self.minh, self.minw))
+            pos_of_interest = 0
+            use_cluster_prob = self.clusterProb_RadioBtn.isChecked()
+            clusters, ev_of_interest = get_clusters(events, pos_of_interest, eps=eps,
+                                                         min_samples=min_samples, use_unique_events=group_by_pixels)
+            new_image = draw_bBox_from_cluster(clusters, ev_of_interest, events,
+                                               pos_of_interest, prob_filter=self.prob_filter / 100.0,
+                                               min_dims=(self.minh, self.minw), use_cluster_prob=use_cluster_prob)
         else:
             new_image = np.zeros((IMG_H, IMG_W))
             binary_mode = self.mode_comboBox.currentText() == "binary"

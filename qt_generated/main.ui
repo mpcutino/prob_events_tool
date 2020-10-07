@@ -191,6 +191,22 @@
           </property>
          </widget>
         </item>
+        <item row="2" column="0">
+         <widget class="QRadioButton" name="clusterProb_RadioBtn">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Use cluster prob</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </item>
       <item>
@@ -276,12 +292,6 @@
      </layout>
     </item>
    </layout>
-   <zorder>formLayoutWidget</zorder>
-   <zorder>formLayoutWidget_2</zorder>
-   <zorder></zorder>
-   <zorder></zorder>
-   <zorder>img_lbl</zorder>
-   <zorder>img_lbl</zorder>
    <zorder>img_lbl</zorder>
    <zorder></zorder>
   </widget>
