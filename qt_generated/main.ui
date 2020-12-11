@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>892</width>
-    <height>578</height>
+    <height>554</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -55,6 +55,16 @@
       </property>
       <property name="scaledContents">
        <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="lbl_ImgName">
+      <property name="text">
+       <string>img name</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
       </property>
      </widget>
     </item>
@@ -137,6 +147,13 @@
           </property>
          </widget>
         </item>
+        <item row="3" column="0">
+         <widget class="QCheckBox" name="checkB_Reverse">
+          <property name="text">
+           <string>Rotate Image</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </item>
       <item>
@@ -192,20 +209,21 @@
          </widget>
         </item>
         <item row="2" column="0">
-         <widget class="QRadioButton" name="clusterProb_RadioBtn">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
+         <widget class="QCheckBox" name="clusterProb_RadioBtn">
           <property name="text">
            <string>Use cluster prob</string>
           </property>
          </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_9">
+          <property name="text">
+           <string>Class index</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QComboBox" name="cbox_ClassIndex"/>
         </item>
        </layout>
       </item>
@@ -292,8 +310,6 @@
      </layout>
     </item>
    </layout>
-   <zorder>img_lbl</zorder>
-   <zorder></zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -316,6 +332,7 @@
     </property>
     <addaction name="actionNext_Image"/>
     <addaction name="actionPrevious_Image"/>
+    <addaction name="actionMake_video"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -339,6 +356,11 @@
    <addaction name="actionLoad"/>
    <addaction name="actionNext_Image"/>
    <addaction name="actionPrevious_Image"/>
+   <addaction name="separator"/>
+   <addaction name="separator"/>
+   <addaction name="separator"/>
+   <addaction name="separator"/>
+   <addaction name="actionMake_video"/>
   </widget>
   <action name="actionLoad">
    <property name="icon">
@@ -401,6 +423,15 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Z</string>
+   </property>
+  </action>
+  <action name="actionMake_video">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/images/images/video.jpeg</normaloff>:/images/images/video.jpeg</iconset>
+   </property>
+   <property name="text">
+    <string>Make video</string>
    </property>
   </action>
  </widget>

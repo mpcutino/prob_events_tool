@@ -26,6 +26,7 @@ class Modified_MainWindow(Ui_MainWindow):
         self.prob_filter = 0
         self.minh = 0
         self.minw = 0
+        self.class_index_selection = 0
 
     def doUiSetup(self, qtMainWindow):
         # this is from base class
@@ -37,6 +38,7 @@ class Modified_MainWindow(Ui_MainWindow):
         self.actionLoad.triggered.connect(self.load_file)
         self.actionNext_Image.triggered.connect(self.next_image)
         self.actionPrevious_Image.triggered.connect(self.prev_image)
+        self.actionMake_video.triggered.connect(self.make_video)
         # add items to color map comboBox
         self.cmComboBox.addItems(self.color_maps)
         self.cmComboBox.currentIndexChanged.connect(self.cbox_change)
@@ -64,6 +66,32 @@ class Modified_MainWindow(Ui_MainWindow):
         self.minW_lineEdit.setFocusPolicy(QtCore.Qt.ClickFocus)
         # add connection to clusterProb radio button
         self.clusterProb_RadioBtn.clicked.connect(self.dummy_img_update)
+        # add connection to flip image radio button
+        self.checkB_Reverse.clicked.connect(self.dummy_img_update)
+        # add conection to class index combo box
+        self.cbox_ClassIndex.addItems(["0", "1"])
+        self.cbox_ClassIndex.currentIndexChanged.connect(self.class_index_change)
+
+    def class_index_change(self):
+        self.class_index_selection = int(self.cbox_ClassIndex.currentText())
+        self.dummy_img_update()
+
+    def make_video(self):
+        if len(self.images):
+            show_message("Video will be made with the images you have already seen", title="Warning!!")
+            fourcc = cv2.VideoWriter_fourcc(*'MJPG')
+            out = cv2.VideoWriter('output.avi', fourcc, 15.0, (IMG_W, IMG_H))
+
+            for img in self.images:
+                show_img = self.get_img_base_on_mode(img)
+                color_map = self.cmComboBox.currentText()
+                show_img = cm.get_cmap(str(color_map), 10)(show_img) * 255
+                cv2.imwrite("tmp.png", show_img)
+                r_img = cv2.imread("tmp.png")
+                out.write(r_img)
+
+            cv2.destroyAllWindows()
+            out.release()
 
     def mode_update(self):
         if str(self.mode_comboBox.currentText()) == "cluster":
@@ -168,11 +196,14 @@ class Modified_MainWindow(Ui_MainWindow):
                     self.has_finish_bag = self.bag_msg_count == len(self.bag_messages)
                     self.images.append(new_ev)
             show_img = self.get_img_base_on_mode(self.images[self.count])
+            if self.checkB_Reverse.isChecked():
+                show_img = np.rot90(show_img, 2)
             color_map = self.cmComboBox.currentText()
             show_img = cm.get_cmap(str(color_map), 10)(show_img)*255
             cv2.imwrite("tmp.png", show_img)
             self.img_lbl.setPixmap(QtGui.QPixmap("tmp.png"))
             remove("tmp.png")
+            self.lbl_ImgName.setText(str(self.images[self.count][-1].ts))
 
     def get_img_base_on_mode(self, events):
         """
@@ -187,12 +218,11 @@ class Modified_MainWindow(Ui_MainWindow):
             eps = self.eps_spinBox.value()
             min_samples = self.minPoints_spinBox.value()
             group_by_pixels = str(self.dbscanGroupBy_comboBox.currentText()) == "pixels"
-            pos_of_interest = 0
             use_cluster_prob = self.clusterProb_RadioBtn.isChecked()
-            clusters, ev_of_interest = get_clusters(events, pos_of_interest, eps=eps,
+            clusters, ev_of_interest = get_clusters(events, self.class_index_selection, eps=eps,
                                                          min_samples=min_samples, use_unique_events=group_by_pixels)
             new_image = draw_bBox_from_cluster(clusters, ev_of_interest, events,
-                                               pos_of_interest, prob_filter=self.prob_filter / 100.0,
+                                               self.class_index_selection, prob_filter=self.prob_filter / 100.0,
                                                min_dims=(self.minh, self.minw), use_cluster_prob=use_cluster_prob)
         else:
             new_image = np.zeros((IMG_H, IMG_W))
@@ -216,19 +246,19 @@ class Modified_MainWindow(Ui_MainWindow):
             for e in msg.message.events:
                 ev_count += 1
                 latest_events.append(e)
+            # testing the use of just one message stamp
+            # break
         return latest_events
 
-    @staticmethod
-    def get_binary_prob_value(e):
+    def get_binary_prob_value(self, e):
         # persons are index 0 in prob array
-        if e.probs[0] == max(e.probs):
+        if e.probs[self.class_index_selection] == max(e.probs):
             return 1
         return 0
 
-    @staticmethod
-    def get_colored_prob_value(e):
+    def get_colored_prob_value(self, e):
         # persons are index 0 in prob array
-        return e.probs[0]/100.0
+        return e.probs[self.class_index_selection]/100.0
 
     def __init_items__(self):
         self.bag_messages = []

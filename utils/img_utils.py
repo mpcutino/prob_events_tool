@@ -31,7 +31,7 @@ def draw_bBox_from_cluster(cluster, ev_of_interest, all_events, pos_of_interest,
     :param min_dims: (height, width) corresponding with the minimum dimensions of the allowed bounding box
     :return:
     """
-    cluster_img = build_img_from_clusters(ev_of_interest, cluster)
+    cluster_img = build_img_from_clusters(ev_of_interest, cluster, pos_of_interest)
     full_img = build_prob_img(all_events, pos_of_interest)
 
     probs = np.unique(cluster_img)
@@ -60,7 +60,7 @@ def draw_bBox_from_cluster(cluster, ev_of_interest, all_events, pos_of_interest,
     return full_img
 
 
-def build_img_from_clusters(events_of_interest, clusters):
+def build_img_from_clusters(events_of_interest, clusters, pos_of_interest):
     new_img = np.zeros((IMG_H, IMG_W))
     if clusters is not None:
         labels_count = clusters.labels_.max() + 1    # because is zero indexed
@@ -68,7 +68,7 @@ def build_img_from_clusters(events_of_interest, clusters):
         for i, label in enumerate(clusters.labels_):
             if label == -1: continue    # outliers
             event = events_of_interest[i]
-            label_prob[label] += event.probs[0]
+            label_prob[label] += event.probs[pos_of_interest]
             label_count[label] += 1
         # get probabilities for each label with a value between 0 and 1
         prob_label = label_prob/(100.0*label_count)
