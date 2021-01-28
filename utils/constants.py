@@ -1,5 +1,6 @@
 
 PROB_EVENT_TOPIC = "models_msgs/prob_events"
+IMG_TOPIC = "/dvs/image_raw"
 
 IMG_W = 346
 IMG_H = 260

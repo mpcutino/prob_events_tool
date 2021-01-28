@@ -5,11 +5,12 @@ import cv2
 import numpy as np
 import rosbag
 from matplotlib import cm
+from cv_bridge import CvBridge
 
 from qt_generated.main import Ui_MainWindow, _fromUtf8
 from utils.qt_utils import show_message
-from utils.constants import PROB_EVENT_TOPIC, IMG_H, IMG_W, EVENTS_PER_IMG, EV2Maintain_PER_IMG
-from utils.img_utils import draw_bBox_from_cluster
+from utils.constants import PROB_EVENT_TOPIC, IMG_TOPIC, IMG_H, IMG_W, EVENTS_PER_IMG, EV2Maintain_PER_IMG
+from utils.img_utils import draw_bBox_from_cluster, to3channels, bitwise_img
 from modes.cluster import get_clusters
 
 
@@ -27,6 +28,9 @@ class Modified_MainWindow(Ui_MainWindow):
         self.minh = 0
         self.minw = 0
         self.class_index_selection = 0
+        self.images_raw_messages = []
+        self.img_msg_count = 0
+        self.two_side_img_mode = False
 
     def doUiSetup(self, qtMainWindow):
         # this is from base class
@@ -135,6 +139,12 @@ class Modified_MainWindow(Ui_MainWindow):
         if len(str(filename)):
             bag = rosbag.Bag(str(filename))
             bag_messages = list(bag.read_messages(PROB_EVENT_TOPIC))
+            self.images_raw_messages = list(bag.read_messages(IMG_TOPIC))
+            if len(self.images_raw_messages) and len(bag_messages):
+                self.two_side_img_mode = True
+            elif not len(self.images_raw_messages):
+                self.two_side_img_mode = False
+                self.img_msg_count = 0
             if len(bag_messages):
                 print(len(bag_messages))
                 self.__init_items__()
@@ -201,9 +211,21 @@ class Modified_MainWindow(Ui_MainWindow):
             color_map = self.cmComboBox.currentText()
             show_img = cm.get_cmap(str(color_map), 10)(show_img)*255
             cv2.imwrite("tmp.png", show_img)
+            show_img = cv2.imread("tmp.png")
             self.img_lbl.setPixmap(QtGui.QPixmap("tmp.png"))
+            if len(self.images[self.count]):
+                self.lbl_ImgName.setText(str(self.images[self.count][-1].ts))
+
+            if self.two_side_img_mode and self.count < len(self.images_raw_messages):
+                # show traditional image
+                bridge = CvBridge()
+                msg = self.images_raw_messages[self.count]
+                img = bridge.imgmsg_to_cv2(msg.message, desired_encoding="passthrough")
+                img = to3channels(img, show_img)
+                img = bitwise_img(img, show_img)
+                cv2.imwrite("tmp.png", img)
+                self.img_lbl_rgb.setPixmap(QtGui.QPixmap("tmp.png"))
             remove("tmp.png")
-            self.lbl_ImgName.setText(str(self.images[self.count][-1].ts))
 
     def get_img_base_on_mode(self, events):
         """
@@ -220,7 +242,7 @@ class Modified_MainWindow(Ui_MainWindow):
             group_by_pixels = str(self.dbscanGroupBy_comboBox.currentText()) == "pixels"
             use_cluster_prob = self.clusterProb_RadioBtn.isChecked()
             clusters, ev_of_interest = get_clusters(events, self.class_index_selection, eps=eps,
-                                                         min_samples=min_samples, use_unique_events=group_by_pixels)
+                                                    min_samples=min_samples, use_unique_events=group_by_pixels)
             new_image = draw_bBox_from_cluster(clusters, ev_of_interest, events,
                                                self.class_index_selection, prob_filter=self.prob_filter / 100.0,
                                                min_dims=(self.minh, self.minw), use_cluster_prob=use_cluster_prob)
@@ -235,19 +257,33 @@ class Modified_MainWindow(Ui_MainWindow):
         return new_image
 
     def get_new_latest_events(self):
-        latest_events = list(self.images[-1]) if len(self.images) else []
-        if len(latest_events):
-            latest_events = latest_events[len(latest_events) - EV2Maintain_PER_IMG:]
-        ev_count = 0
-        for msg in self.bag_messages[self.bag_msg_count:]:
-            if ev_count > EVENTS_PER_IMG:
-                break
-            self.bag_msg_count += 1
-            for e in msg.message.events:
-                ev_count += 1
-                latest_events.append(e)
-            # testing the use of just one message stamp
-            # break
+        latest_events = []
+        if self.two_side_img_mode:
+            for msg in self.bag_messages[self.bag_msg_count:]:
+                if self.img_msg_count >= len(self.images_raw_messages) \
+                        or \
+                        msg.timestamp < self.images_raw_messages[self.img_msg_count].timestamp:
+                    self.bag_msg_count += 1
+                    for e in msg.message.events:
+                        latest_events.append(e)
+                else:
+                    # all events between the current image and the next has been analyzed
+                    self.img_msg_count += 1
+                    break
+        else:
+            latest_events = list(self.images[-1]) if len(self.images) else []
+            if len(latest_events):
+                latest_events = latest_events[len(latest_events) - EV2Maintain_PER_IMG:]
+            ev_count = 0
+            for msg in self.bag_messages[self.bag_msg_count:]:
+                if ev_count > EVENTS_PER_IMG:
+                    break
+                self.bag_msg_count += 1
+                for e in msg.message.events:
+                    ev_count += 1
+                    latest_events.append(e)
+                # testing the use of just one message stamp
+                # break
         return latest_events
 
     def get_binary_prob_value(self, e):

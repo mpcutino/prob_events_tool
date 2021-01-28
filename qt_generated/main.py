@@ -35,6 +35,8 @@ class Ui_MainWindow(object):
         self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
         self.verticalLayout = QtGui.QVBoxLayout(self.centralwidget)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
+        self.horizontalLayout_2 = QtGui.QHBoxLayout()
+        self.horizontalLayout_2.setObjectName(_fromUtf8("horizontalLayout_2"))
         self.img_lbl = QtGui.QLabel(self.centralwidget)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
@@ -46,7 +48,20 @@ class Ui_MainWindow(object):
         self.img_lbl.setPixmap(QtGui.QPixmap(_fromUtf8(":/images/images/init.png")))
         self.img_lbl.setScaledContents(True)
         self.img_lbl.setObjectName(_fromUtf8("img_lbl"))
-        self.verticalLayout.addWidget(self.img_lbl)
+        self.horizontalLayout_2.addWidget(self.img_lbl)
+        self.img_lbl_rgb = QtGui.QLabel(self.centralwidget)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.img_lbl_rgb.sizePolicy().hasHeightForWidth())
+        self.img_lbl_rgb.setSizePolicy(sizePolicy)
+        self.img_lbl_rgb.setAutoFillBackground(False)
+        self.img_lbl_rgb.setText(_fromUtf8(""))
+        self.img_lbl_rgb.setPixmap(QtGui.QPixmap(_fromUtf8(":/images/images/init.png")))
+        self.img_lbl_rgb.setScaledContents(True)
+        self.img_lbl_rgb.setObjectName(_fromUtf8("img_lbl_rgb"))
+        self.horizontalLayout_2.addWidget(self.img_lbl_rgb)
+        self.verticalLayout.addLayout(self.horizontalLayout_2)
         self.lbl_ImgName = QtGui.QLabel(self.centralwidget)
         self.lbl_ImgName.setAlignment(QtCore.Qt.AlignCenter)
         self.lbl_ImgName.setObjectName(_fromUtf8("lbl_ImgName"))
@@ -247,13 +262,3 @@ class Ui_MainWindow(object):
         self.actionMake_video.setText(_translate("MainWindow", "Make video", None))
 
 import resources_rc
-
-if __name__ == "__main__":
-    import sys
-    app = QtGui.QApplication(sys.argv)
-    MainWindow = QtGui.QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    MainWindow.show()
-    sys.exit(app.exec_())
-
