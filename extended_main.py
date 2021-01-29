@@ -10,7 +10,7 @@ from cv_bridge import CvBridge
 from qt_generated.main import Ui_MainWindow, _fromUtf8
 from utils.qt_utils import show_message
 from utils.constants import PROB_EVENT_TOPIC, IMG_TOPIC, IMG_H, IMG_W, EVENTS_PER_IMG, EV2Maintain_PER_IMG
-from utils.img_utils import draw_bBox_from_cluster, to3channels, bitwise_img
+from utils.img_utils import draw_bBox_from_cluster, to3channels, bitwise_img, draw_bBox_from_clusters
 from modes.cluster import get_clusters
 
 
@@ -243,9 +243,12 @@ class Modified_MainWindow(Ui_MainWindow):
             use_cluster_prob = self.clusterProb_RadioBtn.isChecked()
             clusters, ev_of_interest = get_clusters(events, self.class_index_selection, eps=eps,
                                                     min_samples=min_samples, use_unique_events=group_by_pixels)
-            new_image = draw_bBox_from_cluster(clusters, ev_of_interest, events,
-                                               self.class_index_selection, prob_filter=self.prob_filter / 100.0,
-                                               min_dims=(self.minh, self.minw), use_cluster_prob=use_cluster_prob)
+            # new_image = draw_bBox_from_cluster(clusters, ev_of_interest, events,
+            #                                    self.class_index_selection, prob_filter=self.prob_filter / 100.0,
+            #                                    min_dims=(self.minh, self.minw), use_cluster_prob=use_cluster_prob)
+            new_image = draw_bBox_from_clusters(clusters, ev_of_interest, events,
+                                                self.class_index_selection, prob_filter=self.prob_filter / 100.0,
+                                                min_dims=(self.minh, self.minw), use_cluster_prob=use_cluster_prob)
         else:
             new_image = np.zeros((IMG_H, IMG_W))
             binary_mode = self.mode_comboBox.currentText() == "binary"
