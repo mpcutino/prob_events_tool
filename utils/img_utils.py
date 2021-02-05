@@ -157,7 +157,6 @@ def get_prob_inside_rois(rois, all_events):
         for i, box in enumerate(rois):
             for e in all_events:
                 if e.probs == (0, 100):
-                    print("Ok, we see you")
                     # this was the default prob that I use when the event was filtered,
                     # so it is better not to use it
                     continue
@@ -192,7 +191,16 @@ def build_prob_img(events, index_of_interest):
     new_image = np.zeros((IMG_H, IMG_W))
     counts = np.zeros((IMG_H, IMG_W))
     for ev in events:
-        new_image[ev.y, ev.x] += ev.probs[index_of_interest] / 100.0
+        if ev.probs == (0, 100):
+            # this was the default prob that I use when the event was filtered,
+            # so it is better not to use it
+            continue
+        # because probability is rounded to int, sometimes is 0, but is not
+        # we can know by checking if the sum of the probabilities is not 100
+        p = 1 if sum(ev.probs) < 100 and ev.probs[index_of_interest] == 0 else ev.probs[index_of_interest]
+        # this is not a big difference in term of the value,
+        # but at least we can be sure that this was classified by the network
+        new_image[ev.y, ev.x] += p / 100.0
         counts[ev.y, ev.x] += 1
     mask = counts > 0
     new_image[mask] = new_image[mask]/counts[mask]
