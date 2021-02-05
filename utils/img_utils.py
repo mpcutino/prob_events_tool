@@ -32,7 +32,8 @@ def draw_bBox_from_cluster(cluster, ev_of_interest, all_events, pos_of_interest,
     :return:
     """
     cluster_img = build_img_from_clusters(ev_of_interest, cluster, pos_of_interest)
-    full_img = build_prob_img(all_events, pos_of_interest)
+    prob_img = build_prob_img(all_events, pos_of_interest)
+    full_img = build_3channels_img(all_events, pos_of_interest)
 
     probs = np.unique(cluster_img)
     for p in probs:
@@ -50,11 +51,11 @@ def draw_bBox_from_cluster(cluster, ev_of_interest, all_events, pos_of_interest,
         else:
             # instead of using prob in cluster (that ony consider elements of the cluster),
             # use the full image in the box slice to compute the probability inside the box
-            box_slice = full_img[start[1]:end[1], start[0]:end[0]]
+            box_slice = prob_img[start[1]:end[1], start[0]:end[0]]
             true_prob = box_slice.sum() / (box_slice > 0).sum()
 
         if true_prob >= prob_filter and h <= box_h and w <= box_w:
-            draw_bBox(full_img, start, end, "", true_prob * 100, bbox_color=128 / 255.0)
+            draw_bBox(full_img, start, end, "", true_prob * 100, bbox_color=(0, 255, 0))
         # else:
         #     full_img[h_indexes, w_indexes] = 0
     return full_img
@@ -92,11 +93,12 @@ def draw_bBox_from_clusters(cluster, ev_of_interest, all_events, pos_of_interest
         if p > prob_filter and (pos_of_interest is None or pos_of_interest == c):
             filtered_rois.append((r, c, p))
 
-    full_img = build_prob_img(all_events, pos_of_interest)
+    # full_img = build_prob_img(all_events, pos_of_interest)
+    full_img = build_3channels_img(all_events, pos_of_interest)
 
     for r, c, p in filtered_rois:
         x, y, w, h = r
-        draw_bBox(full_img, (x, y), (x+w, y+h), str(c), p * 100, bbox_color=128 / 255.0)
+        draw_bBox(full_img, (x, y), (x+w, y+h), str(c), p * 100, bbox_color=(0, 255, 0))
     return full_img
 
 
@@ -154,6 +156,11 @@ def get_prob_inside_rois(rois, all_events):
             rois_probs_count.append(0)
         for i, box in enumerate(rois):
             for e in all_events:
+                if e.probs == (0, 100):
+                    print("Ok, we see you")
+                    # this was the default prob that I use when the event was filtered,
+                    # so it is better not to use it
+                    continue
                 if is_in_box(e, box):
                     rois_probs_sum[i] += np.array(e.probs)/100.0
                     rois_probs_count[i] += 1
@@ -189,6 +196,27 @@ def build_prob_img(events, index_of_interest):
         counts[ev.y, ev.x] += 1
     mask = counts > 0
     new_image[mask] = new_image[mask]/counts[mask]
+    return new_image
+
+
+def build_3channels_img(events, index_of_interest):
+    """
+    the probability of the event is on the green channel
+    if the event has 0 probability then it has a red or blue color depending on its polarity
+    :param events:
+    :param index_of_interest:
+    :return:
+    """
+    new_image = np.zeros((IMG_H, IMG_W, 3))
+    prob_img = build_prob_img(events, index_of_interest)
+    for ev in events:
+        # we assign a color to the event depending on the polarity if this event has probability 0
+        # we do so only because a 0 probability probably means that this event was filtered
+        # this is mainly to see the event
+        if prob_img[ev.y, ev.x] == 0:
+            channel = 0 if ev.polarity else 2
+            new_image[ev.y, ev.x, channel] = 255
+    new_image[:, :, 1] = prob_img*255
     return new_image
 
 

@@ -209,7 +209,7 @@ class Modified_MainWindow(Ui_MainWindow):
             if self.checkB_Reverse.isChecked():
                 show_img = np.rot90(show_img, 2)
             color_map = self.cmComboBox.currentText()
-            show_img = cm.get_cmap(str(color_map), 10)(show_img)*255
+            # show_img = cm.get_cmap(str(color_map), 10)(show_img)*255
             cv2.imwrite("tmp.png", show_img)
             show_img = cv2.imread("tmp.png")
             self.img_lbl.setPixmap(QtGui.QPixmap("tmp.png"))
