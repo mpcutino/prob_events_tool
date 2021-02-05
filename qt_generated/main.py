@@ -25,9 +25,9 @@ except AttributeError:
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName(_fromUtf8("MainWindow"))
-        MainWindow.resize(892, 554)
+        MainWindow.resize(1056, 554)
         MainWindow.setMinimumSize(QtCore.QSize(500, 425))
-        MainWindow.setMaximumSize(QtCore.QSize(1000, 756))
+        MainWindow.setMaximumSize(QtCore.QSize(1110, 756))
         MainWindow.setFocusPolicy(QtCore.Qt.ClickFocus)
         MainWindow.setLayoutDirection(QtCore.Qt.LeftToRight)
         self.centralwidget = QtGui.QWidget(MainWindow)
@@ -61,6 +61,12 @@ class Ui_MainWindow(object):
         self.img_lbl_rgb.setScaledContents(True)
         self.img_lbl_rgb.setObjectName(_fromUtf8("img_lbl_rgb"))
         self.horizontalLayout_2.addWidget(self.img_lbl_rgb)
+        self.lbl_rbg_box = QtGui.QLabel(self.centralwidget)
+        self.lbl_rbg_box.setText(_fromUtf8(""))
+        self.lbl_rbg_box.setPixmap(QtGui.QPixmap(_fromUtf8(":/images/images/init.png")))
+        self.lbl_rbg_box.setScaledContents(True)
+        self.lbl_rbg_box.setObjectName(_fromUtf8("lbl_rbg_box"))
+        self.horizontalLayout_2.addWidget(self.lbl_rbg_box)
         self.verticalLayout.addLayout(self.horizontalLayout_2)
         self.lbl_ImgName = QtGui.QLabel(self.centralwidget)
         self.lbl_ImgName.setAlignment(QtCore.Qt.AlignCenter)
@@ -170,7 +176,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.addLayout(self.horizontalLayout_3)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 892, 25))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1056, 25))
         self.menubar.setObjectName(_fromUtf8("menubar"))
         self.menuFile = QtGui.QMenu(self.menubar)
         self.menuFile.setObjectName(_fromUtf8("menuFile"))
@@ -262,3 +268,13 @@ class Ui_MainWindow(object):
         self.actionMake_video.setText(_translate("MainWindow", "Make video", None))
 
 import resources_rc
+
+if __name__ == "__main__":
+    import sys
+    app = QtGui.QApplication(sys.argv)
+    MainWindow = QtGui.QMainWindow()
+    ui = Ui_MainWindow()
+    ui.setupUi(MainWindow)
+    MainWindow.show()
+    sys.exit(app.exec_())
+

@@ -53,9 +53,9 @@ class Modified_MainWindow(Ui_MainWindow):
         self.mode_comboBox.setEnabled(False)
         self.mode_comboBox.currentIndexChanged.connect(self.mode_update)
         # set eps and min_point defaults
-        self.eps_spinBox.setValue(15)
+        self.eps_spinBox.setValue(9)
         self.eps_spinBox.setMinimum(1)
-        self.minPoints_spinBox.setValue(50)
+        self.minPoints_spinBox.setValue(70)
         self.minPoints_spinBox.setMinimum(2)
         self.eps_spinBox.valueChanged.connect(self.dummy_img_update)
         self.minPoints_spinBox.valueChanged.connect(self.dummy_img_update)
@@ -222,9 +222,14 @@ class Modified_MainWindow(Ui_MainWindow):
                 msg = self.images_raw_messages[self.count]
                 img = bridge.imgmsg_to_cv2(msg.message, desired_encoding="passthrough")
                 img = to3channels(img, show_img)
-                img = bitwise_img(img, show_img)
-                cv2.imwrite("tmp.png", img)
+                bt_img = bitwise_img(img, show_img)
+                cv2.imwrite("tmp.png", bt_img)
                 self.img_lbl_rgb.setPixmap(QtGui.QPixmap("tmp.png"))
+
+                mask = (show_img[:, :, 0] == 255) & (show_img[:, :, 1] == 255) & (show_img[:, :, 2] == 255)
+                img[mask, :] = (255, 255, 255)
+                cv2.imwrite("tmp.png", img)
+                self.lbl_rbg_box.setPixmap(QtGui.QPixmap("tmp.png"))
             remove("tmp.png")
 
     def get_img_base_on_mode(self, events):
@@ -257,6 +262,7 @@ class Modified_MainWindow(Ui_MainWindow):
                 new_image[ev.y, ev.x] = value
             # zeroing values below the prob filter
             new_image[new_image < self.prob_filter / 100.0] = 0
+            new_image *= 255
         return new_image
 
     def get_new_latest_events(self):

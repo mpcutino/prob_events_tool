@@ -55,7 +55,7 @@ def draw_bBox_from_cluster(cluster, ev_of_interest, all_events, pos_of_interest,
             true_prob = box_slice.sum() / (box_slice > 0).sum()
 
         if true_prob >= prob_filter and h <= box_h and w <= box_w:
-            draw_bBox(full_img, start, end, "", true_prob * 100, bbox_color=(0, 255, 0))
+            draw_bBox(full_img, start, end, "", true_prob * 100, bbox_color=(255, 255, 255))
         # else:
         #     full_img[h_indexes, w_indexes] = 0
     return full_img
@@ -98,7 +98,7 @@ def draw_bBox_from_clusters(cluster, ev_of_interest, all_events, pos_of_interest
 
     for r, c, p in filtered_rois:
         x, y, w, h = r
-        draw_bBox(full_img, (x, y), (x+w, y+h), str(c), p * 100, bbox_color=(0, 255, 0))
+        draw_bBox(full_img, (x, y), (x+w, y+h), str(c), p * 100, bbox_color=(255, 255, 255))
     return full_img
 
 
