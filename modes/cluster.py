@@ -12,7 +12,8 @@ def dbscan_on_list(param, eps=7, min_samples=10):
 
 def get_clusters(events_list, pos_of_interest, eps=7, min_samples=10, use_unique_events=True):
     # use only the events from the interest class to build the clusters
-    events_of_interest = [e for e in events_list if e.probs[pos_of_interest] == max(e.probs)]
+    events_of_interest = [e for e in events_list if e.probs[pos_of_interest] == max(e.probs) and e.probs != (0, 100)]
+    # events_of_interest = [e for e in events_list if e.probs[pos_of_interest] == max(e.probs)]
     if len(events_of_interest):
         if use_unique_events:
             param = [(e.y, e.x) for e in events_of_interest]

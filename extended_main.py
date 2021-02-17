@@ -273,7 +273,11 @@ class Modified_MainWindow(Ui_MainWindow):
                         or \
                         msg.timestamp < self.images_raw_messages[self.img_msg_count].timestamp:
                     self.bag_msg_count += 1
-                    for e in msg.message.events:
+                    if hasattr(msg.message, 'event'):
+                        evs = msg.message.event
+                    else:
+                        evs = msg.message.events
+                    for e in evs:
                         latest_events.append(e)
                 else:
                     # all events between the current image and the next has been analyzed
@@ -288,7 +292,11 @@ class Modified_MainWindow(Ui_MainWindow):
                 if ev_count > EVENTS_PER_IMG:
                     break
                 self.bag_msg_count += 1
-                for e in msg.message.events:
+                if hasattr(msg.message, 'event'):
+                    evs = msg.message.event
+                else:
+                    evs = msg.message.events
+                for e in evs:
                     ev_count += 1
                     latest_events.append(e)
                 # testing the use of just one message stamp
